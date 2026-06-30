@@ -32,6 +32,18 @@ struct DashboardView: View {
                     )
                 }
 
+                HStack(spacing: 8) {
+                    Button("Start All Services") {
+                        uiState.startServices()
+                    }
+                    .disabled(uiState.isAnyServiceRunning)
+
+                    Button("Stop All Services") {
+                        uiState.stopServices()
+                    }
+                    .disabled(!uiState.isAnyServiceRunning)
+                }
+
                 HStack(spacing: 32) {
                     metric(title: "已连接 SDK", value: "\(uiState.connectedCount)")
                     metric(title: "活跃场景", value: uiState.activeScenarioTitle ?? "—")
@@ -77,13 +89,9 @@ struct DashboardView: View {
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Button(isOn ? "Stop" : "Start") {
-                    if isOn {
-                        uiState.stopServices()
-                    } else {
-                        uiState.startServices()
-                    }
-                }
+                Text(isOn ? "Running" : "Stopped")
+                    .font(.caption.bold())
+                    .foregroundStyle(isOn ? .primary : .secondary)
             }
             .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
         }

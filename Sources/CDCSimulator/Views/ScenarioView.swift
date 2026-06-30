@@ -16,6 +16,12 @@ struct ScenarioView: View {
                 Text("Test Scenarios")
                     .font(.title2.bold())
 
+                if !uiState.hasConnectedClient {
+                    Text("Waiting for SDK WebSocket client")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(TestScenario.allCases) { scenario in
                         scenarioCard(scenario)
@@ -40,6 +46,7 @@ struct ScenarioView: View {
                             Button("Run Custom") {
                                 uiState.runCustomScenario()
                             }
+                            .disabled(!uiState.canRunScenario)
                             .keyboardShortcut(.return, modifiers: .command)
                         }
                     }
@@ -77,6 +84,7 @@ struct ScenarioView: View {
                     Button("Run") {
                         uiState.runScenario(scenario)
                     }
+                    .disabled(!uiState.canRunScenario)
                 }
             }
             .frame(maxWidth: .infinity, minHeight: 140, alignment: .leading)

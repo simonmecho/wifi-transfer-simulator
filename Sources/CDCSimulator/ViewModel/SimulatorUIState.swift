@@ -193,6 +193,7 @@ final class SimulatorUIState: ObservableObject {
     }
 
     func runScenario(_ scenario: TestScenario) {
+        guard canRunScenario else { return }
         controller?.runScenario(scenario)
         Task {
             try? await Task.sleep(nanoseconds: 300_000_000)
@@ -201,7 +202,7 @@ final class SimulatorUIState: ObservableObject {
     }
 
     func runCustomScenario() {
-        guard let controller else { return }
+        guard canRunScenario, let controller else { return }
         let files = customEmptyFileList
             ? []
             : customScenarioFiles
@@ -236,6 +237,7 @@ final class SimulatorUIState: ObservableObject {
     }
 
     func sendQuickPush() {
+        guard canQuickPush else { return }
         controller?.pushTransfer(files: pushFileList)
     }
 
@@ -279,6 +281,12 @@ final class SimulatorUIState: ObservableObject {
             .map { $0.trimmingCharacters(in: .whitespaces) }
             .filter { !$0.isEmpty }
     }
+
+    var hasConnectedClient: Bool { connectedCount > 0 }
+
+    var canQuickPush: Bool { hasConnectedClient && !pushFileList.isEmpty }
+
+    var canRunScenario: Bool { hasConnectedClient }
 
     private static let logFormatter: DateFormatter = {
         let formatter = DateFormatter()

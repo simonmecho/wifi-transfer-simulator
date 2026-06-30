@@ -36,7 +36,7 @@ struct InspectorView: View {
 
                 GroupBox("Connected Clients (\(uiState.connectedCount))") {
                     if uiState.connectedCount == 0 {
-                        Text("No clients connected")
+                        Text("Waiting for SDK WebSocket client")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     } else {
@@ -58,9 +58,20 @@ struct InspectorView: View {
                         TextField("file1.mp4,file2.json", text: $uiState.pushFilesText)
                             .textFieldStyle(.roundedBorder)
 
+                        if !uiState.hasConnectedClient {
+                            Text("Waiting for SDK WebSocket client")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        } else if uiState.pushFileList.isEmpty {
+                            Text("Enter at least one filename")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+
                         Button("Send") {
                             uiState.sendQuickPush()
                         }
+                        .disabled(!uiState.canQuickPush)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
