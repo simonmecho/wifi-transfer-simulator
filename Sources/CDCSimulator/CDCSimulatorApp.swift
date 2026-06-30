@@ -1,3 +1,4 @@
+import AppKit
 import CDCSimulatorCore
 import SwiftUI
 
@@ -5,11 +6,19 @@ import SwiftUI
 struct CDCSimulatorApp: App {
     @StateObject private var controller = WebSocketServerController()
 
+    init() {
+        // SPM 产出的是裸 Mach-O 可执行文件，不是 .app bundle，需显式声明为前台 GUI 应用。
+        NSApplication.shared.setActivationPolicy(.regular)
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView(controller: controller)
                 .frame(minWidth: 1024, minHeight: 680)
-                .onAppear { schedulePushIfNeeded(controller: controller) }
+                .onAppear {
+                    NSApplication.shared.activate(ignoringOtherApps: true)
+                    schedulePushIfNeeded(controller: controller)
+                }
         }
         .defaultSize(width: 1200, height: 760)
         .windowResizability(.contentMinSize)

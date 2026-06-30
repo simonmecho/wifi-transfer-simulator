@@ -22,11 +22,15 @@ public struct SimulatorSettings: Sendable, Equatable {
     }
 
     public static func defaultVideoRoot() -> String {
-        let cwd = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-        let candidate = cwd.appendingPathComponent("Fixtures/videos", isDirectory: true)
-        if FileManager.default.fileExists(atPath: candidate.path) {
+        let fm = FileManager.default
+        let candidates = [
+            URL(fileURLWithPath: fm.currentDirectoryPath).appendingPathComponent("Fixtures/videos", isDirectory: true),
+            Bundle.main.bundleURL.appendingPathComponent("Fixtures/videos", isDirectory: true),
+            Bundle.main.bundleURL.deletingLastPathComponent().appendingPathComponent("Fixtures/videos", isDirectory: true),
+        ]
+        for candidate in candidates where fm.fileExists(atPath: candidate.path) {
             return candidate.path
         }
-        return cwd.appendingPathComponent("simulator/Fixtures/videos", isDirectory: true).path
+        return candidates[0].path
     }
 }
