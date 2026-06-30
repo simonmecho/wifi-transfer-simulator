@@ -8,8 +8,11 @@ struct CDCSimulatorApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView(controller: controller)
+                .frame(minWidth: 1024, minHeight: 680)
                 .onAppear { schedulePushIfNeeded(controller: controller) }
         }
+        .defaultSize(width: 1200, height: 760)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Send Test Push") {
