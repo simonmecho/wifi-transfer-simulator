@@ -48,6 +48,7 @@ final class SimulatorUIState: ObservableObject {
 
     @Published var wifiSSID = "DashCam_TEST"
     @Published var wifiPassword = "test1234"
+    @Published var securityType = "WPA2"
     @Published var authID = "cdc"
     @Published var authPass = "cdc123"
     @Published var videoRootPath = SimulatorSettings.defaultVideoRoot()
@@ -94,6 +95,10 @@ final class SimulatorUIState: ObservableObject {
         return String(hex.prefix(8))
     }
 
+    var wifiPairingURI: String {
+        WiFiPairingURI.build(ssid: wifiSSID, password: wifiPassword, securityType: securityType)
+    }
+
     var filteredLogs: [LogEntry] {
         logs.filter { entry in
             logSourceFilter.includes(entry.source)
@@ -107,6 +112,7 @@ final class SimulatorUIState: ObservableObject {
         let settings = await controller.manager.settings
         wifiSSID = settings.wifiSSID
         wifiPassword = settings.wifiPassword
+        securityType = settings.securityType
         videoRootPath = settings.videoRootPath
         authID = settings.webSocketAuthID
         authPass = settings.webSocketAuthPass
@@ -171,7 +177,11 @@ final class SimulatorUIState: ObservableObject {
     func applyWiFiSettings() {
         guard let controller else { return }
         Task {
-            await controller.manager.updateWiFi(ssid: wifiSSID, password: wifiPassword)
+            await controller.manager.updateWiFi(
+                ssid: wifiSSID,
+                password: wifiPassword,
+                securityType: securityType
+            )
             await refresh()
         }
     }

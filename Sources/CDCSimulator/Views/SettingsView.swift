@@ -15,6 +15,7 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         labeledField("SSID", text: $uiState.wifiSSID)
                         labeledField("Password", text: $uiState.wifiPassword, isSecure: true)
+                        securityTypePicker
 
                         Divider()
 
@@ -30,6 +31,26 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .onChange(of: uiState.wifiSSID) { _ in uiState.applyWiFiSettings() }
                     .onChange(of: uiState.wifiPassword) { _ in uiState.applyWiFiSettings() }
+                    .onChange(of: uiState.securityType) { _ in uiState.applyWiFiSettings() }
+                }
+
+                GroupBox("Wi-Fi QR Code") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Scan with DemoApp to pair")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text(uiState.wifiPairingURI)
+                            .font(.caption.monospaced())
+                            .textSelection(.enabled)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(nsColor: .textBackgroundColor))
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                        wifiQRCodeImage
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
                 GroupBox("WebSocket Auth") {
@@ -78,6 +99,36 @@ struct SettingsView: View {
             }
             .padding(24)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var securityTypePicker: some View {
+        HStack {
+            Text("Security:")
+                .frame(width: 90, alignment: .leading)
+            Picker("Security", selection: $uiState.securityType) {
+                Text("WPA2").tag("WPA2")
+                Text("WPA3").tag("WPA3")
+                Text("OPEN").tag("OPEN")
+            }
+            .pickerStyle(.segmented)
+        }
+    }
+
+    @ViewBuilder
+    private var wifiQRCodeImage: some View {
+        if let image = QRCodeGenerator.image(from: uiState.wifiPairingURI) {
+            Image(nsImage: image)
+                .interpolation(.none)
+                .resizable()
+                .frame(width: 160, height: 160)
+                .padding(8)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+        } else {
+            Text("Unable to generate QR code")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

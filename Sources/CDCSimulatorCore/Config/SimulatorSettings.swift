@@ -3,6 +3,7 @@ import Foundation
 public struct SimulatorSettings: Sendable, Equatable {
     public var wifiSSID: String
     public var wifiPassword: String
+    public var securityType: String
     public var webSocketAuthID: String
     public var webSocketAuthPass: String
     public var videoRootPath: String
@@ -10,12 +11,14 @@ public struct SimulatorSettings: Sendable, Equatable {
     public init(
         wifiSSID: String = "DashCam_TEST",
         wifiPassword: String = "test1234",
+        securityType: String = "WPA2",
         webSocketAuthID: String = "cdc",
         webSocketAuthPass: String = "cdc123",
         videoRootPath: String = SimulatorSettings.defaultVideoRoot()
     ) {
         self.wifiSSID = wifiSSID
         self.wifiPassword = wifiPassword
+        self.securityType = securityType
         self.webSocketAuthID = webSocketAuthID
         self.webSocketAuthPass = webSocketAuthPass
         self.videoRootPath = videoRootPath

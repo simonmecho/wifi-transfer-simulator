@@ -64,9 +64,10 @@ public actor ConnectionManager {
         appendLog(source: .system, level: "INFO", message: "WebSocket auth credentials updated")
     }
 
-    public func updateWiFi(ssid: String, password: String) {
+    public func updateWiFi(ssid: String, password: String, securityType: String) {
         settings.wifiSSID = ssid
         settings.wifiPassword = password
+        settings.securityType = securityType
         appendLog(source: .system, level: "INFO", message: "Wi-Fi/WebDAV config updated")
     }
 
