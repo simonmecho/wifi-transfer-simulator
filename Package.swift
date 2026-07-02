@@ -29,5 +29,10 @@ let package = Package(
             dependencies: ["CDCSimulatorCore"],
             path: "Sources/cdc-server"
         ),
+        .testTarget(
+            name: "CDCSimulatorCoreTests",
+            dependencies: ["CDCSimulatorCore"],
+            path: "Tests/CDCSimulatorCoreTests"
+        ),
     ]
 )

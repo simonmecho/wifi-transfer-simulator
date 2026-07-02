@@ -33,8 +33,10 @@ swift run CDCSimulator
 Headless server (CI / smoke tests):
 
 ```bash
+swift test
 swift run cdc-server
 swift Scripts/ws_smoke_test.swift
+swift Scripts/ws_auth_negative_smoke_test.swift   # stale cdc123 must be rejected
 swift Scripts/webdav_smoke_test.swift ChinaNet-SXGE-5G Sm_20090524 sample_front.mp4
 ```
 
