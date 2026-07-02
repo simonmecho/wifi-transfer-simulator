@@ -4,8 +4,8 @@ import Foundation
 
 @available(macOS 10.15, *)
 func run() async throws {
-    let ssid = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "DashCam_TEST"
-    let password = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "test1234"
+    let ssid = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "ChinaNet-SXGE-5G"
+    let password = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "Sm_20090524"
     let file = CommandLine.arguments.count > 3 ? CommandLine.arguments[3] : "sample_front.mp4"
 
     let digest = Insecure.MD5.hash(data: Data((ssid + password).utf8))

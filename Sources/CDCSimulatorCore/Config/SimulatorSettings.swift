@@ -9,11 +9,11 @@ public struct SimulatorSettings: Sendable, Equatable {
     public var videoRootPath: String
 
     public init(
-        wifiSSID: String = "DashCam_TEST",
-        wifiPassword: String = "test1234",
+        wifiSSID: String = "ChinaNet-SXGE-5G",
+        wifiPassword: String = "Sm_20090524",
         securityType: String = "WPA2",
         webSocketAuthID: String = "cdc",
-        webSocketAuthPass: String = "cdc123",
+        webSocketAuthPass: String? = nil,
         videoRootPath: String = SimulatorSettings.defaultVideoRoot()
     ) {
         self.wifiSSID = wifiSSID
@@ -21,6 +21,7 @@ public struct SimulatorSettings: Sendable, Equatable {
         self.securityType = securityType
         self.webSocketAuthID = webSocketAuthID
         self.webSocketAuthPass = webSocketAuthPass
+            ?? AuthUtils.webDavToken(ssid: wifiSSID, password: wifiPassword)
         self.videoRootPath = videoRootPath
     }
 

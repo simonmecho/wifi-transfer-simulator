@@ -1,5 +1,4 @@
 import CDCSimulatorCore
-import CryptoKit
 import Foundation
 
 enum SidebarTab: String, CaseIterable, Identifiable {
@@ -46,11 +45,10 @@ final class SimulatorUIState: ObservableObject {
     @Published var activeScenarioTitle: String?
     @Published var servicesStartedAt: Date?
 
-    @Published var wifiSSID = "DashCam_TEST"
-    @Published var wifiPassword = "test1234"
+    @Published var wifiSSID = "ChinaNet-SXGE-5G"
+    @Published var wifiPassword = "Sm_20090524"
     @Published var securityType = "WPA2"
     @Published var authID = "cdc"
-    @Published var authPass = "cdc123"
     @Published var videoRootPath = SimulatorSettings.defaultVideoRoot()
 
     @Published var pushFilesText = "sample_front.mp4,sample_front.json"
@@ -90,10 +88,10 @@ final class SimulatorUIState: ObservableObject {
     }
 
     var webDavTokenPreview: String {
-        let digest = Insecure.MD5.hash(data: Data((wifiSSID + wifiPassword).utf8))
-        let hex = digest.map { String(format: "%02x", $0) }.joined()
-        return String(hex.prefix(8))
+        AuthUtils.webDavToken(ssid: wifiSSID, password: wifiPassword)
     }
+
+    var authPass: String { webDavTokenPreview }
 
     var wifiPairingURI: String {
         WiFiPairingURI.build(ssid: wifiSSID, password: wifiPassword, securityType: securityType)
@@ -115,7 +113,6 @@ final class SimulatorUIState: ObservableObject {
         securityType = settings.securityType
         videoRootPath = settings.videoRootPath
         authID = settings.webSocketAuthID
-        authPass = settings.webSocketAuthPass
         await refresh()
     }
 

@@ -1,12 +1,9 @@
-import CryptoKit
 import FlyingFox
 import Foundation
 
 enum WebDAVAuth {
     static func expectedToken(ssid: String, password: String) -> String {
-        let digest = Insecure.MD5.hash(data: Data((ssid + password).utf8))
-        let hex = digest.map { String(format: "%02x", $0) }.joined()
-        return String(hex.prefix(8))
+        AuthUtils.webDavToken(ssid: ssid, password: password)
     }
 
     static func validate(request: HTTPRequest, ssid: String, wifiPassword: String) -> Bool {

@@ -56,11 +56,20 @@ struct SettingsView: View {
                 GroupBox("WebSocket Auth") {
                     VStack(alignment: .leading, spacing: 12) {
                         labeledField("Auth ID", text: $uiState.authID)
-                        labeledField("Auth Pass", text: $uiState.authPass, isSecure: true)
+
+                        Text("Auth Pass: md5(SSID+pass)[:8]")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(uiState.authPass)
+                            .font(.title3.monospaced())
+                        Text("derived from Wi-Fi settings (matches production SDK)")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .onChange(of: uiState.authID) { _ in uiState.applyAuthSettings() }
-                    .onChange(of: uiState.authPass) { _ in uiState.applyAuthSettings() }
+                    .onChange(of: uiState.wifiSSID) { _ in uiState.applyAuthSettings() }
+                    .onChange(of: uiState.wifiPassword) { _ in uiState.applyAuthSettings() }
                 }
 
                 GroupBox("Paths") {

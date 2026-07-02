@@ -35,7 +35,7 @@ Headless server (CI / smoke tests):
 ```bash
 swift run cdc-server
 swift Scripts/ws_smoke_test.swift
-swift Scripts/webdav_smoke_test.swift DashCam_TEST test1234 sample_front.mp4
+swift Scripts/webdav_smoke_test.swift ChinaNet-SXGE-5G Sm_20090524 sample_front.mp4
 ```
 
 CLI push (after server starts):
@@ -46,8 +46,11 @@ swift run CDCSimulator --push sample_front.mp4,sample_front.json
 
 ## Default auth credentials
 
+Matches production SDK `DefaultAuthCredentialProvider`:
+
 - id: `cdc`
-- pass: `cdc123`
+- pass: `md5(SSID + password)` hex, first 8 chars (same token for WebDAV and WebSocket)
+- default SSID/password (`ChinaNet-SXGE-5G` / `Sm_20090524`) → pass `006d1135`
 
 ## Protocol reference
 
