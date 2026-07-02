@@ -186,7 +186,7 @@ final class SimulatorUIState: ObservableObject {
     func applyAuthSettings() {
         guard let controller else { return }
         Task {
-            await controller.manager.updateAuth(id: authID, pass: authPass)
+            await controller.manager.updateAuth(id: authID)
             await refresh()
         }
     }

@@ -58,9 +58,12 @@ public actor ConnectionManager {
         }
     }
 
-    public func updateAuth(id: String, pass: String) {
+    public func updateAuth(id: String) {
         settings.webSocketAuthID = id
-        settings.webSocketAuthPass = pass
+        settings.webSocketAuthPass = AuthUtils.webDavToken(
+            ssid: settings.wifiSSID,
+            password: settings.wifiPassword
+        )
         appendLog(source: .system, level: "INFO", message: "WebSocket auth credentials updated")
     }
 
