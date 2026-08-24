@@ -55,7 +55,7 @@ struct InspectorView: View {
 
                 GroupBox("Quick Push") {
                     VStack(alignment: .leading, spacing: 10) {
-                        TextField("file1.mp4,file2.json", text: $uiState.pushFilesText)
+                        TextField("file1.mp4,file2.mp4", text: $uiState.pushFilesText)
                             .textFieldStyle(.roundedBorder)
 
                         if !uiState.hasConnectedClient {

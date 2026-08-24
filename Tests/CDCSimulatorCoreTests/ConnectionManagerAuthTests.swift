@@ -2,11 +2,11 @@ import XCTest
 @testable import CDCSimulatorCore
 
 final class ConnectionManagerAuthTests: XCTestCase {
-    func testDefaultSettingsDeriveAuthPassFromWiFiCredentials() async {
+    func testDefaultSettingsDeriveAuthFromWiFiCredentials() async {
         let manager = ConnectionManager()
         let settings = await manager.settings
 
-        XCTAssertEqual(settings.webSocketAuthID, "cdc")
+        XCTAssertEqual(settings.webSocketAuthID, settings.wifiSSID)
         XCTAssertEqual(
             settings.webSocketAuthPass,
             AuthUtils.webDavToken(ssid: settings.wifiSSID, password: settings.wifiPassword)
@@ -18,9 +18,12 @@ final class ConnectionManagerAuthTests: XCTestCase {
         await manager.updateWiFi(ssid: "DashCam_TEST", password: "test1234", securityType: "WPA2")
 
         let expected = AuthUtils.webDavToken(ssid: "DashCam_TEST", password: "test1234")
+        let authID = await manager.authID
         let authPass = await manager.authPass
         let settings = await manager.settings
 
+        XCTAssertEqual(authID, "DashCam_TEST")
+        XCTAssertEqual(settings.webSocketAuthID, "DashCam_TEST")
         XCTAssertEqual(authPass, expected)
         XCTAssertEqual(settings.webSocketAuthPass, expected)
     }

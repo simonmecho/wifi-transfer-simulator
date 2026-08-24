@@ -68,8 +68,6 @@ struct SettingsView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .onChange(of: uiState.authID) { _ in uiState.applyAuthSettings() }
-                    .onChange(of: uiState.wifiSSID) { _ in uiState.applyAuthSettings() }
-                    .onChange(of: uiState.wifiPassword) { _ in uiState.applyAuthSettings() }
                 }
 
                 GroupBox("Paths") {

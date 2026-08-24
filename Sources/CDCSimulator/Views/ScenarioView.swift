@@ -34,7 +34,7 @@ struct ScenarioView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text("Files:")
-                            TextField("sample_front.mp4,sample_front.json", text: $uiState.customScenarioFiles)
+                            TextField("sample_front.mp4,incident.mp4", text: $uiState.customScenarioFiles)
                                 .textFieldStyle(.roundedBorder)
                         }
 

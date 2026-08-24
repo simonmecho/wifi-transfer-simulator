@@ -22,11 +22,11 @@ public enum TestScenario: String, CaseIterable, Identifiable, Sendable {
     public var summary: String {
         switch self {
         case .normalTransfer:
-            "Push sample_front.mp4 + sample_front.json"
+            "Push sample_front.mp4"
         case .emptyFileList:
             "Push empty list — SDK should silently ignore"
         case .cdcCancel:
-            "Reject first transfer request with error (UserCancel path)"
+            "Return transfer response with status=error for the first MP4 request"
         case .largeFile:
             "Generate ~5 MB file and push single large transfer"
         case .multiFile:
@@ -37,11 +37,11 @@ public enum TestScenario: String, CaseIterable, Identifiable, Sendable {
     public var pushFiles: [String] {
         switch self {
         case .normalTransfer:
-            ["sample_front.mp4", "sample_front.json"]
+            ["sample_front.mp4"]
         case .emptyFileList:
             []
         case .cdcCancel:
-            ["sample_front.mp4", "sample_front.json"]
+            ["sample_front.mp4"]
         case .largeFile:
             ["large_test.mp4"]
         case .multiFile:

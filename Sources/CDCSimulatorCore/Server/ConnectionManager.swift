@@ -71,6 +71,7 @@ public actor ConnectionManager {
         settings.wifiSSID = ssid
         settings.wifiPassword = password
         settings.securityType = securityType
+        settings.webSocketAuthID = ssid
         settings.webSocketAuthPass = AuthUtils.webDavToken(ssid: ssid, password: password)
         appendLog(source: .system, level: "INFO", message: "Wi-Fi/WebDAV/WebSocket auth config updated")
     }

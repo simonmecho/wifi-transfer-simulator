@@ -25,7 +25,7 @@ struct CDCSimulatorApp: App {
         .commands {
             CommandGroup(after: .appInfo) {
                 Button("Send Test Push") {
-                    controller.pushTransfer(files: ["sample_front.mp4", "sample_front.json"])
+                    controller.pushTransfer(files: ["sample_front.mp4"])
                 }
                 .keyboardShortcut("P", modifiers: [.command, .shift])
             }

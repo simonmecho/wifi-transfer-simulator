@@ -48,18 +48,17 @@ final class SimulatorUIState: ObservableObject {
     @Published var wifiSSID = "ChinaNet-SXGE-5G"
     @Published var wifiPassword = "Sm_20090524"
     @Published var securityType = "WPA2"
-    @Published var authID = "cdc"
+    @Published var authID = "ChinaNet-SXGE-5G"
     @Published var videoRootPath = SimulatorSettings.defaultVideoRoot()
 
-    @Published var pushFilesText = "sample_front.mp4,sample_front.json"
+    @Published var pushFilesText = "sample_front.mp4"
     @Published var testFileSpecs: [TestFileSpec] = [
         TestFileSpec(filename: "sample_front.mp4", sizeKB: 1),
-        TestFileSpec(filename: "sample_front.json", sizeKB: 1),
     ]
     @Published var videoFiles: [VideoFileRow] = []
     @Published var selectedVideoFiles = Set<String>()
 
-    @Published var customScenarioFiles = "sample_front.mp4,sample_front.json"
+    @Published var customScenarioFiles = "sample_front.mp4"
     @Published var customRejectTransfer = false
     @Published var customEmptyFileList = false
 
@@ -173,6 +172,7 @@ final class SimulatorUIState: ObservableObject {
 
     func applyWiFiSettings() {
         guard let controller else { return }
+        authID = wifiSSID
         Task {
             await controller.manager.updateWiFi(
                 ssid: wifiSSID,
@@ -248,6 +248,11 @@ final class SimulatorUIState: ObservableObject {
         controller?.pushTransfer(files: pushFileList)
     }
 
+    func pushSelectedVideoFiles() {
+        guard canPushSelectedVideoFiles else { return }
+        controller?.pushTransfer(files: selectedVideoFileNames)
+    }
+
     func generateTestFiles() {
         controller?.generateTestFiles(specs: testFileSpecs)
         Task {
@@ -293,7 +298,15 @@ final class SimulatorUIState: ObservableObject {
 
     var canQuickPush: Bool { hasConnectedClient && !pushFileList.isEmpty }
 
+    var canPushSelectedVideoFiles: Bool { hasConnectedClient && !selectedVideoFileNames.isEmpty }
+
     var canRunScenario: Bool { hasConnectedClient }
+
+    private var selectedVideoFileNames: [String] {
+        videoFiles
+            .filter { selectedVideoFiles.contains($0.id) }
+            .map(\.name)
+    }
 
     private static let logFormatter: DateFormatter = {
         let formatter = DateFormatter()
