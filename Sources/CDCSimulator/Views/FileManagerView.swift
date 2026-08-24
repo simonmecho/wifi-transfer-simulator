@@ -35,6 +35,10 @@ struct FileManagerView: View {
                 Button("Generate from specs") {
                     uiState.generateTestFiles()
                 }
+                Button("Push Selected") {
+                    uiState.pushSelectedVideoFiles()
+                }
+                .disabled(!uiState.canPushSelectedVideoFiles)
                 Button("Delete Selected") {
                     uiState.deleteSelectedVideoFiles()
                 }
