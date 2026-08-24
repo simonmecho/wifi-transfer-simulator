@@ -13,12 +13,26 @@ func run() async throws {
     let authString = "user:\(token)"
     let authData = Data(authString.utf8).base64EncodedString()
 
-    var request = URLRequest(url: URL(string: "http://127.0.0.1:49150/\(file)")!)
-    request.httpMethod = "GET"
-    request.setValue("Basic \(authData)", forHTTPHeaderField: "Authorization")
+    let url = URL(string: "http://127.0.0.1:49150/\(file)")!
+    let authorization = "Basic \(authData)"
 
-    let (data, response) = try await URLSession.shared.data(for: request)
-    guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+    var headRequest = URLRequest(url: url)
+    headRequest.httpMethod = "HEAD"
+    headRequest.setValue(authorization, forHTTPHeaderField: "Authorization")
+    let (_, headResponse) = try await URLSession.shared.data(for: headRequest)
+    guard let headHTTP = headResponse as? HTTPURLResponse,
+          headHTTP.statusCode == 200,
+          headHTTP.expectedContentLength >= 0 else {
+        throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "WebDAV HEAD failed"])
+    }
+
+    var getRequest = URLRequest(url: url)
+    getRequest.httpMethod = "GET"
+    getRequest.setValue(authorization, forHTTPHeaderField: "Authorization")
+    let (data, getResponse) = try await URLSession.shared.data(for: getRequest)
+    guard let getHTTP = getResponse as? HTTPURLResponse,
+          getHTTP.statusCode == 200,
+          Int64(data.count) == headHTTP.expectedContentLength else {
         throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "WebDAV GET failed"])
     }
     print("WEBDAV: \(file) \(data.count) bytes")

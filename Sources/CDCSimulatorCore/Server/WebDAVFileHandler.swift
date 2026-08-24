@@ -24,8 +24,20 @@ struct WebDAVFileHandler: HTTPHandler {
             return HTTPResponse(statusCode: .notFound)
         }
 
-        let data = try Data(contentsOf: fileURL)
         let contentType = fileURL.pathExtension.lowercased() == "mp4" ? "video/mp4" : "application/octet-stream"
+
+        if request.method == .HEAD {
+            let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
+            let fileSize = (attributes[.size] as? NSNumber)?.intValue ?? 0
+            await manager.appendLog(source: .webDAV, level: "INFO", message: "WebDAV HEAD \(relativePath) (\(fileSize) bytes)")
+
+            var headers = HTTPHeaders()
+            headers[.contentType] = contentType
+            headers[.contentLength] = "\(fileSize)"
+            return HTTPResponse(statusCode: .ok, headers: headers)
+        }
+
+        let data = try Data(contentsOf: fileURL)
         await manager.appendLog(source: .webDAV, level: "INFO", message: "WebDAV GET \(relativePath) (\(data.count) bytes)")
 
         var headers = HTTPHeaders()

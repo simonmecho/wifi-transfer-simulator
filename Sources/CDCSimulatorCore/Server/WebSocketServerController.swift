@@ -118,7 +118,7 @@ public final class WebSocketServerController: ObservableObject {
             do {
                 let handler = WebDAVFileHandler(manager: manager)
                 let server = HTTPServer(port: Self.webDAVPort)
-                await server.appendRoute("GET /*", to: handler)
+                await server.appendRoute("GET,HEAD /*", to: handler)
 
                 async let runLoop: Void = server.run()
                 try await server.waitUntilListening()

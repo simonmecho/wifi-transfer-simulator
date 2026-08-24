@@ -31,7 +31,10 @@ let package = Package(
         ),
         .testTarget(
             name: "CDCSimulatorCoreTests",
-            dependencies: ["CDCSimulatorCore"],
+            dependencies: [
+                "CDCSimulatorCore",
+                .product(name: "FlyingFox", package: "FlyingFox"),
+            ],
             path: "Tests/CDCSimulatorCoreTests"
         ),
     ]

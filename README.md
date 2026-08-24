@@ -13,12 +13,12 @@ macOS desktop simulator for SDK integration testing. Issue [#2](https://github.c
 **S2 (#3)**
 - mDNS/DNS-SD publishes `_drec._tcp` (WebSocket port 8490)
 - WebDAV server on port **49150** with CDC Basic Auth (`md5(SSID+password)` first 8 hex chars)
-- GET serves mp4/json files from configurable `Fixtures/videos` root
+- HEAD returns file metadata and GET serves mp4 files from configurable `Fixtures/videos` root
 - GUI configures Wi-Fi SSID/password and video root path
 
 **S3 (#5)**
 - GUI test file builder (filename + size KB) with one-click generation into video root
-- Preset scenarios: normal transfer / empty fileList / CDC cancel / large file / multi-file
+- Preset scenarios: normal MP4 transfer / empty fileList / CDC cancel / large MP4 / multi-MP4
 - Live logs with WebSocket vs WebDAV filters; WS transfer + movie path protocol handling
 - Push disabled until at least one SDK WebSocket client is connected
 
@@ -43,7 +43,7 @@ swift Scripts/webdav_smoke_test.swift ChinaNet-SXGE-5G Sm_20090524 sample_front.
 CLI push (after server starts):
 
 ```bash
-swift run CDCSimulator --push sample_front.mp4,sample_front.json
+swift run CDCSimulator --push sample_front.mp4
 ```
 
 ## Default auth credentials
