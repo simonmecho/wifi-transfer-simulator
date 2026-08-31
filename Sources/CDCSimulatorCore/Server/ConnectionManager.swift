@@ -70,14 +70,8 @@ public actor ConnectionManager {
         appendLog(source: .system, level: "INFO", message: "Video root updated: \(path)")
     }
 
-    public func sendTransferRequestByPush(
-        files: [String],
-        camera: String = "front",
-        kind: String = "continuous"
-    ) {
+    public func sendTransferRequestByPush(files: [String]) {
         var message = CDCMessage(cmd: CDCCommand.transferRequestByPush)
-        message.camera = camera
-        message.kind = kind
         message.list = files
 
         guard let payload = try? message.encoded() else { return }
