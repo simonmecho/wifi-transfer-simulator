@@ -48,11 +48,13 @@ swift run CDCSimulator --push sample_front.mp4
 
 ## Default auth credentials
 
-Matches production SDK `DefaultAuthCredentialProvider`:
+WebSocket auth matches production SDK `DefaultAuthCredentialProvider`:
 
-- id: `cdc`
-- pass: `md5(SSID + password)` hex, first 8 chars (same token for WebDAV and WebSocket)
-- default SSID/password (`ChinaNet-SXGE-5G` / `Sm_20090524`) → pass `006d1135`
+- id: `md5(SSID)` hex, first 8 chars
+- pass: `md5(Wi-Fi password)` hex, first 8 chars
+- default SSID/password (`ChinaNet-SXGE-5G` / `Sm_20090524`) → id `1357f7d3`, pass `b6d4d16a`
+
+WebDAV continues to use `md5(SSID + password)` hex, first 8 chars.
 
 ## Protocol reference
 

@@ -6,10 +6,13 @@ final class ConnectionManagerAuthTests: XCTestCase {
         let manager = ConnectionManager()
         let settings = await manager.settings
 
-        XCTAssertEqual(settings.webSocketAuthID, settings.wifiSSID)
+        XCTAssertEqual(
+            settings.webSocketAuthID,
+            AuthUtils.basicAuthID(ssid: settings.wifiSSID)
+        )
         XCTAssertEqual(
             settings.webSocketAuthPass,
-            AuthUtils.webDavToken(ssid: settings.wifiSSID, password: settings.wifiPassword)
+            AuthUtils.basicAuthPass(password: settings.wifiPassword)
         )
     }
 
@@ -17,15 +20,16 @@ final class ConnectionManagerAuthTests: XCTestCase {
         let manager = ConnectionManager()
         await manager.updateWiFi(ssid: "DashCam_TEST", password: "test1234", securityType: "WPA2")
 
-        let expected = AuthUtils.webDavToken(ssid: "DashCam_TEST", password: "test1234")
+        let expectedID = AuthUtils.basicAuthID(ssid: "DashCam_TEST")
+        let expectedPass = AuthUtils.basicAuthPass(password: "test1234")
         let authID = await manager.authID
         let authPass = await manager.authPass
         let settings = await manager.settings
 
-        XCTAssertEqual(authID, "DashCam_TEST")
-        XCTAssertEqual(settings.webSocketAuthID, "DashCam_TEST")
-        XCTAssertEqual(authPass, expected)
-        XCTAssertEqual(settings.webSocketAuthPass, expected)
+        XCTAssertEqual(authID, expectedID)
+        XCTAssertEqual(settings.webSocketAuthID, expectedID)
+        XCTAssertEqual(authPass, expectedPass)
+        XCTAssertEqual(settings.webSocketAuthPass, expectedPass)
     }
 
     func testUpdateWiFiRejectsStaleHardcodedPass() async {
@@ -34,6 +38,6 @@ final class ConnectionManagerAuthTests: XCTestCase {
 
         let authPass = await manager.authPass
         XCTAssertNotEqual(authPass, "cdc123")
-        XCTAssertEqual(authPass, "006d1135")
+        XCTAssertEqual(authPass, "b6d4d16a")
     }
 }

@@ -58,21 +58,10 @@ public actor ConnectionManager {
         }
     }
 
-    public func updateAuth(id: String) {
-        settings.webSocketAuthID = id
-        settings.webSocketAuthPass = AuthUtils.webDavToken(
-            ssid: settings.wifiSSID,
-            password: settings.wifiPassword
-        )
-        appendLog(source: .system, level: "INFO", message: "WebSocket auth credentials updated")
-    }
-
     public func updateWiFi(ssid: String, password: String, securityType: String) {
         settings.wifiSSID = ssid
         settings.wifiPassword = password
         settings.securityType = securityType
-        settings.webSocketAuthID = ssid
-        settings.webSocketAuthPass = AuthUtils.webDavToken(ssid: ssid, password: password)
         appendLog(source: .system, level: "INFO", message: "Wi-Fi/WebDAV/WebSocket auth config updated")
     }
 

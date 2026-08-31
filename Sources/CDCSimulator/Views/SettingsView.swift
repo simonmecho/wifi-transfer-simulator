@@ -55,9 +55,13 @@ struct SettingsView: View {
 
                 GroupBox("WebSocket Auth") {
                     VStack(alignment: .leading, spacing: 12) {
-                        labeledField("Auth ID", text: $uiState.authID)
+                        Text("Auth ID: md5(SSID)[:8]")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(uiState.authID)
+                            .font(.title3.monospaced())
 
-                        Text("Auth Pass: md5(SSID+pass)[:8]")
+                        Text("Auth Pass: md5(Wi-Fi password)[:8]")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Text(uiState.authPass)
@@ -67,7 +71,6 @@ struct SettingsView: View {
                             .foregroundStyle(.tertiary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .onChange(of: uiState.authID) { _ in uiState.applyAuthSettings() }
                 }
 
                 GroupBox("Paths") {

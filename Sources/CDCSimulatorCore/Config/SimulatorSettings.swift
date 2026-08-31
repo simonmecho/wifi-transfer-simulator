@@ -4,24 +4,20 @@ public struct SimulatorSettings: Sendable, Equatable {
     public var wifiSSID: String
     public var wifiPassword: String
     public var securityType: String
-    public var webSocketAuthID: String
-    public var webSocketAuthPass: String
     public var videoRootPath: String
+
+    public var webSocketAuthID: String { AuthUtils.basicAuthID(ssid: wifiSSID) }
+    public var webSocketAuthPass: String { AuthUtils.basicAuthPass(password: wifiPassword) }
 
     public init(
         wifiSSID: String = "ChinaNet-SXGE-5G",
         wifiPassword: String = "Sm_20090524",
         securityType: String = "WPA2",
-        webSocketAuthID: String? = nil,
-        webSocketAuthPass: String? = nil,
         videoRootPath: String = SimulatorSettings.defaultVideoRoot()
     ) {
         self.wifiSSID = wifiSSID
         self.wifiPassword = wifiPassword
         self.securityType = securityType
-        self.webSocketAuthID = webSocketAuthID ?? wifiSSID
-        self.webSocketAuthPass = webSocketAuthPass
-            ?? AuthUtils.webDavToken(ssid: wifiSSID, password: wifiPassword)
         self.videoRootPath = videoRootPath
     }
 

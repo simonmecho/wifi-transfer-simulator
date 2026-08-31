@@ -6,14 +6,16 @@ import Foundation
 func run() async throws {
     let ssid = CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : "ChinaNet-SXGE-5G"
     let password = CommandLine.arguments.count > 2 ? CommandLine.arguments[2] : "Sm_20090524"
-    let digest = Insecure.MD5.hash(data: Data((ssid + password).utf8))
-    let pass = digest.map { String(format: "%02x", $0) }.joined().prefix(8)
+    let idDigest = Insecure.MD5.hash(data: Data(ssid.utf8))
+    let id = idDigest.map { String(format: "%02x", $0) }.joined().prefix(8)
+    let passDigest = Insecure.MD5.hash(data: Data(password.utf8))
+    let pass = passDigest.map { String(format: "%02x", $0) }.joined().prefix(8)
 
     let url = URL(string: "ws://127.0.0.1:8490/")!
     let task = URLSession.shared.webSocketTask(with: url)
     task.resume()
 
-    let auth = #"{"cmd":"basic auth request","id":"cdc","pass":"\#(pass)"}"#
+    let auth = #"{"cmd":"basic auth request","id":"\#(id)","pass":"\#(pass)"}"#
     try await task.send(.string(auth))
     let authReply = try await task.receive()
     switch authReply {

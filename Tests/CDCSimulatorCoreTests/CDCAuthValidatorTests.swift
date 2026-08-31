@@ -5,10 +5,10 @@ final class CDCAuthValidatorTests: XCTestCase {
     func testValidateAcceptsMatchingCredentials() {
         XCTAssertTrue(
             CDCAuthValidator.validate(
-                id: "cdc",
-                pass: "006d1135",
-                expectedID: "cdc",
-                expectedPass: "006d1135"
+                id: "1357f7d3",
+                pass: "b6d4d16a",
+                expectedID: "1357f7d3",
+                expectedPass: "b6d4d16a"
             )
         )
     }
@@ -16,10 +16,10 @@ final class CDCAuthValidatorTests: XCTestCase {
     func testValidateRejectsWrongPassword() {
         XCTAssertFalse(
             CDCAuthValidator.validate(
-                id: "cdc",
+                id: "1357f7d3",
                 pass: "cdc123",
-                expectedID: "cdc",
-                expectedPass: "006d1135"
+                expectedID: "1357f7d3",
+                expectedPass: "b6d4d16a"
             )
         )
     }
@@ -28,9 +28,9 @@ final class CDCAuthValidatorTests: XCTestCase {
         XCTAssertFalse(
             CDCAuthValidator.validate(
                 id: "other",
-                pass: "006d1135",
-                expectedID: "cdc",
-                expectedPass: "006d1135"
+                pass: "b6d4d16a",
+                expectedID: "1357f7d3",
+                expectedPass: "b6d4d16a"
             )
         )
     }
@@ -39,9 +39,9 @@ final class CDCAuthValidatorTests: XCTestCase {
         XCTAssertFalse(
             CDCAuthValidator.validate(
                 id: nil,
-                pass: "006d1135",
-                expectedID: "cdc",
-                expectedPass: "006d1135"
+                pass: "b6d4d16a",
+                expectedID: "1357f7d3",
+                expectedPass: "b6d4d16a"
             )
         )
     }

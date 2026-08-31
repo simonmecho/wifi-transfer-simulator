@@ -2,6 +2,11 @@ import XCTest
 @testable import CDCSimulatorCore
 
 final class AuthUtilsTests: XCTestCase {
+    func testBasicAuthUsesSeparateMd5Prefixes() {
+        XCTAssertEqual(AuthUtils.basicAuthID(ssid: "DashCam_TEST"), "c9392af3")
+        XCTAssertEqual(AuthUtils.basicAuthPass(password: "test1234"), "16d7a4fc")
+    }
+
     func testWebDavTokenMatchesKnownDefaultCredentials() {
         XCTAssertEqual(
             AuthUtils.webDavToken(ssid: "ChinaNet-SXGE-5G", password: "Sm_20090524"),

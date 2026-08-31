@@ -48,7 +48,6 @@ final class SimulatorUIState: ObservableObject {
     @Published var wifiSSID = "ChinaNet-SXGE-5G"
     @Published var wifiPassword = "Sm_20090524"
     @Published var securityType = "WPA2"
-    @Published var authID = "ChinaNet-SXGE-5G"
     @Published var videoRootPath = SimulatorSettings.defaultVideoRoot()
 
     @Published var pushFilesText = "sample_front.mp4"
@@ -90,7 +89,9 @@ final class SimulatorUIState: ObservableObject {
         AuthUtils.webDavToken(ssid: wifiSSID, password: wifiPassword)
     }
 
-    var authPass: String { webDavTokenPreview }
+    var authID: String { AuthUtils.basicAuthID(ssid: wifiSSID) }
+
+    var authPass: String { AuthUtils.basicAuthPass(password: wifiPassword) }
 
     var wifiPairingURI: String {
         WiFiPairingURI.build(ssid: wifiSSID, password: wifiPassword, securityType: securityType)
@@ -111,7 +112,6 @@ final class SimulatorUIState: ObservableObject {
         wifiPassword = settings.wifiPassword
         securityType = settings.securityType
         videoRootPath = settings.videoRootPath
-        authID = settings.webSocketAuthID
         await refresh()
     }
 
@@ -172,21 +172,12 @@ final class SimulatorUIState: ObservableObject {
 
     func applyWiFiSettings() {
         guard let controller else { return }
-        authID = wifiSSID
         Task {
             await controller.manager.updateWiFi(
                 ssid: wifiSSID,
                 password: wifiPassword,
                 securityType: securityType
             )
-            await refresh()
-        }
-    }
-
-    func applyAuthSettings() {
-        guard let controller else { return }
-        Task {
-            await controller.manager.updateAuth(id: authID)
             await refresh()
         }
     }
