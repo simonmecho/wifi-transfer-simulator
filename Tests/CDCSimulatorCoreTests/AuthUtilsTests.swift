@@ -26,4 +26,8 @@ final class AuthUtilsTests: XCTestCase {
             baseline
         )
     }
+
+    func testVINDigestMatchesDemoAppContract() {
+        XCTAssertEqual(AuthUtils.vinDigest(vin: "TESTVIN0000000001"), "53683494")
+    }
 }

@@ -6,6 +6,10 @@ final class TestScenarioTests: XCTestCase {
         let scenarios: [TestScenario] = [
             .normalTransfer,
             .cdcCancel,
+            .slowTransfer,
+            .webDAVFailure,
+            .webSocketDisconnect,
+            .userCancelNotifyFailure,
             .largeFile,
             .multiFile,
         ]
@@ -17,5 +21,18 @@ final class TestScenarioTests: XCTestCase {
                 "\(scenario.title) contains a non-MP4 file"
             )
         }
+    }
+
+    func testVINValidationFailureUsesNullFileList() {
+        XCTAssertNil(TestScenario.vinValidationFailure.transferPushFiles)
+        XCTAssertEqual(TestScenario.emptyFileList.transferPushFiles, [])
+    }
+
+    func testFailureScenariosExposeExpectedFaultBehavior() {
+        XCTAssertEqual(TestScenario.slowTransfer.webDAVResponseDelay, 10)
+        XCTAssertTrue(TestScenario.webDAVFailure.failsWebDAVGET)
+        XCTAssertTrue(TestScenario.userCancelNotifyFailure.disconnectWebSocketOnWebDAVGET)
+        XCTAssertEqual(TestScenario.userCancelNotifyFailure.webDAVResponseDelay, 10)
+        XCTAssertFalse(TestScenario.normalTransfer.failsWebDAVGET)
     }
 }
