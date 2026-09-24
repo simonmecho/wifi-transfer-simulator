@@ -6,19 +6,20 @@ macOS desktop simulator for SDK integration testing. Issue [#2](https://github.c
 
 **S1 (#2)**
 - WebSocket server on port **8490**
-- Handles `basic auth request` → responds `basic auth response` with `status: ok|error`
+- Handles `basic auth request` → responds `basic auth response` with `status: success|error`
+- Sends `vin auth request`, validates the MD5-prefix digest in `vin auth response`, and sends `list: null` on mismatch
 - Logs `status notify` messages
 - GUI / CLI to send `transfer request by push`
 
 **S2 (#3)**
 - mDNS/DNS-SD publishes `_drec._tcp` (WebSocket port 8490)
 - WebDAV server on port **49150** with CDC Basic Auth (`md5(SSID+password)` first 8 hex chars)
-- HEAD returns file metadata and GET serves mp4 files from configurable `Fixtures/videos` root
+- GET serves mp4 files with `Content-Length` from configurable `Fixtures/videos` root; HEAD is rejected like the production CDC
 - GUI configures Wi-Fi SSID/password and video root path
 
 **S3 (#5)**
 - GUI test file builder (filename + size KB) with one-click generation into video root
-- Preset scenarios: normal MP4 transfer / empty fileList / CDC cancel / large MP4 / multi-MP4
+- Preset scenarios: normal / empty list / VIN validation failure / CDC cancel / slow download / WebDAV failure / WebSocket disconnect / UserCancel notify failure / large file / multi-file
 - Live logs with WebSocket vs WebDAV filters; WS transfer + movie path protocol handling
 - Push disabled until at least one SDK WebSocket client is connected
 
@@ -55,6 +56,17 @@ WebSocket auth matches production SDK `DefaultAuthCredentialProvider`:
 - default SSID/password (`ChinaNet-SXGE-5G` / `Sm_20090524`) → id `1357f7d3`, pass `b6d4d16a`
 
 WebDAV continues to use `md5(SSID + password)` hex, first 8 chars.
+
+VIN Auth uses the configurable VIN in Settings. A successful response must return
+`md5(VIN)` as lowercase hex, first 8 chars. A mismatched success digest causes the
+simulator to send `transfer request by push` with an explicit `list: null`.
+
+Failure scenarios are deliberately bounded and explicit:
+
+- **Slow download** delays the WebDAV GET response for 10 seconds so the DemoApp can cancel an active transfer.
+- **WebDAV failure** returns HTTP 503 for GET.
+- **WebSocket disconnect** closes the control channel when the first transfer request arrives.
+- **UserCancel notify failure** closes the WebSocket when GET starts and keeps GET pending for 10 seconds; cancel from the DemoApp during that window to exercise the failed `error/UserCancel` send path.
 
 ## Protocol reference
 

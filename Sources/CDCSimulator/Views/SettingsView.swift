@@ -73,6 +73,17 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
 
+                GroupBox("VIN Auth") {
+                    VStack(alignment: .leading, spacing: 12) {
+                        labeledField("VIN", text: $uiState.vehicleVIN)
+                        Text("Expected digest: \(AuthUtils.vinDigest(vin: uiState.vehicleVIN))")
+                            .font(.caption.monospaced())
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .onChange(of: uiState.vehicleVIN) { _ in uiState.applyVehicleVIN() }
+                }
+
                 GroupBox("Paths") {
                     HStack {
                         Text("Video Root:")

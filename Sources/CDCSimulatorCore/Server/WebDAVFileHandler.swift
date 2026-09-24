@@ -11,6 +11,24 @@ struct WebDAVFileHandler: HTTPHandler {
             return WebDAVAuth.unauthorizedResponse()
         }
 
+        guard request.method == .GET else {
+            await manager.appendLog(source: .webDAV, level: "WARN", message: "WebDAV method not allowed: \(request.method)")
+            return HTTPResponse(statusCode: .methodNotAllowed)
+        }
+
+        let scenario = await manager.activeScenario
+        if scenario?.disconnectWebSocketOnWebDAVGET == true {
+            await manager.disconnectAllClients(reason: "UserCancel notify failure scenario after WebDAV GET started")
+        }
+        if scenario?.failsWebDAVGET == true {
+            await manager.appendLog(source: .webDAV, level: "ERROR", message: "WebDAV GET forced to fail")
+            return HTTPResponse(statusCode: .serviceUnavailable)
+        }
+        if let delay = scenario?.webDAVResponseDelay, delay > 0 {
+            await manager.appendLog(source: .webDAV, level: "INFO", message: "WebDAV GET delayed by \(Int(delay)) seconds")
+            try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+        }
+
         let relativePath = sanitizePath(request.path)
         guard !relativePath.isEmpty else {
             return HTTPResponse(statusCode: .notFound)
@@ -25,17 +43,6 @@ struct WebDAVFileHandler: HTTPHandler {
         }
 
         let contentType = fileURL.pathExtension.lowercased() == "mp4" ? "video/mp4" : "application/octet-stream"
-
-        if request.method == .HEAD {
-            let attributes = try FileManager.default.attributesOfItem(atPath: fileURL.path)
-            let fileSize = (attributes[.size] as? NSNumber)?.intValue ?? 0
-            await manager.appendLog(source: .webDAV, level: "INFO", message: "WebDAV HEAD \(relativePath) (\(fileSize) bytes)")
-
-            var headers = HTTPHeaders()
-            headers[.contentType] = contentType
-            headers[.contentLength] = "\(fileSize)"
-            return HTTPResponse(statusCode: .ok, headers: headers)
-        }
 
         let data = try Data(contentsOf: fileURL)
         await manager.appendLog(source: .webDAV, level: "INFO", message: "WebDAV GET \(relativePath) (\(data.count) bytes)")

@@ -3,6 +3,8 @@ import Foundation
 enum CDCCommand {
     static let basicAuthRequest = "basic auth request"
     static let basicAuthResponse = "basic auth response"
+    static let vinAuthRequest = "vin auth request"
+    static let vinAuthResponse = "vin auth response"
     static let statusNotify = "status notify"
     static let transferRequestByPush = "transfer request by push"
     static let transferRequest = "transfer request"
@@ -17,6 +19,7 @@ struct CDCMessage: Codable, Sendable {
     var pass: String?
     var status: String?
     var detail: String?
+    var vin: String?
     var list: [String]?
     var camera: String?
     var kind: String?
@@ -27,7 +30,7 @@ struct CDCMessage: Codable, Sendable {
     }
 
     enum CodingKeys: String, CodingKey {
-        case cmd, id, pass, status, detail, list, camera, kind, path
+        case cmd, id, pass, status, detail, vin, list, camera, kind, path
     }
 
     init(from decoder: Decoder) throws {
@@ -37,6 +40,7 @@ struct CDCMessage: Codable, Sendable {
         pass = try container.decodeIfPresent(String.self, forKey: .pass)
         status = try container.decodeIfPresent(String.self, forKey: .status)
         detail = try container.decodeIfPresent(String.self, forKey: .detail)
+        vin = try container.decodeIfPresent(String.self, forKey: .vin)
         list = try container.decodeIfPresent([String].self, forKey: .list)
         camera = try container.decodeIfPresent(String.self, forKey: .camera)
         kind = try container.decodeIfPresent(String.self, forKey: .kind)
@@ -50,6 +54,7 @@ struct CDCMessage: Codable, Sendable {
         try container.encodeIfPresent(pass, forKey: .pass)
         try container.encodeIfPresent(status, forKey: .status)
         try container.encodeIfPresent(detail, forKey: .detail)
+        try container.encodeIfPresent(vin, forKey: .vin)
         try container.encodeIfPresent(list, forKey: .list)
         try container.encodeIfPresent(camera, forKey: .camera)
         try container.encodeIfPresent(kind, forKey: .kind)
@@ -69,6 +74,18 @@ struct CDCMessage: Codable, Sendable {
             throw CDCProtocolError.invalidJSON
         }
         return try JSONDecoder().decode(CDCMessage.self, from: data)
+    }
+
+    static func transferRequestByPush(files: [String]?) throws -> String {
+        let payload: [String: Any] = [
+            "cmd": CDCCommand.transferRequestByPush,
+            "list": files ?? NSNull(),
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw CDCProtocolError.encodingFailed
+        }
+        return text
     }
 }
 

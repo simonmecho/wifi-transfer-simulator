@@ -21,10 +21,33 @@ func run() async throws {
     switch authReply {
     case .string(let text):
         print("AUTH:", text)
-        guard text.contains("\"status\":\"ok\"") else { throw NSError(domain: "test", code: 1) }
+        guard text.contains("\"status\":\"success\"") else { throw NSError(domain: "test", code: 1) }
     default:
         throw NSError(domain: "test", code: 2)
     }
+
+    let vinRequest = try await task.receive()
+    let vin: String
+    switch vinRequest {
+    case .string(let text):
+        print("VIN:", text)
+        let data = Data(text.utf8)
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard object?["cmd"] as? String == "vin auth request",
+              let value = object?["vin"] as? String else {
+            throw NSError(domain: "test", code: 3)
+        }
+        vin = value
+    default:
+        throw NSError(domain: "test", code: 4)
+    }
+
+    let vinDigest = Insecure.MD5.hash(data: Data(vin.utf8))
+        .map { String(format: "%02x", $0) }
+        .joined()
+        .prefix(8)
+    let vinResponse = #"{"cmd":"vin auth response","status":"success","detail":"\#(vinDigest)"}"#
+    try await task.send(.string(vinResponse))
 
     let status = #"{"cmd":"status notify","status":"idle","detail":""}"#
     try await task.send(.string(status))

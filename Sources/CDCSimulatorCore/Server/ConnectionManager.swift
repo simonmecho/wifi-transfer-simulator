@@ -15,7 +15,12 @@ public struct LogEntry: Identifiable, Sendable {
 }
 
 public actor ConnectionManager {
-    private var outboundHandlers: [UUID: (String) -> Void] = [:]
+    private struct OutboundClient {
+        let send: (String) -> Void
+        let close: () -> Void
+    }
+
+    private var outboundClients: [UUID: OutboundClient] = [:]
     public private(set) var logs: [LogEntry] = []
     public private(set) var connectedClientCount = 0
     public private(set) var settings = SimulatorSettings()
@@ -26,15 +31,19 @@ public actor ConnectionManager {
     public var authID: String { settings.webSocketAuthID }
     public var authPass: String { settings.webSocketAuthPass }
 
-    func registerOutbound(id: UUID, handler: @escaping (String) -> Void) {
-        outboundHandlers[id] = handler
-        connectedClientCount = outboundHandlers.count
+    func registerOutbound(
+        id: UUID,
+        close: @escaping () -> Void = {},
+        handler: @escaping (String) -> Void
+    ) {
+        outboundClients[id] = OutboundClient(send: handler, close: close)
+        connectedClientCount = outboundClients.count
         appendLog(source: .webSocket, level: "INFO", message: "Client connected (\(connectedClientCount) total)")
     }
 
     func unregisterOutbound(id: UUID) {
-        outboundHandlers.removeValue(forKey: id)
-        connectedClientCount = outboundHandlers.count
+        guard outboundClients.removeValue(forKey: id) != nil else { return }
+        connectedClientCount = outboundClients.count
         appendLog(source: .webSocket, level: "INFO", message: "Client disconnected (\(connectedClientCount) remaining)")
     }
 
@@ -53,8 +62,18 @@ public actor ConnectionManager {
     }
 
     func broadcast(text: String) {
-        for handler in outboundHandlers.values {
-            handler(text)
+        for client in outboundClients.values {
+            client.send(text)
+        }
+    }
+
+    func disconnectAllClients(reason: String) {
+        let clients = Array(outboundClients.values)
+        outboundClients.removeAll()
+        connectedClientCount = 0
+        appendLog(source: .webSocket, level: "WARN", message: "Disconnect all clients: \(reason)")
+        for client in clients {
+            client.close()
         }
     }
 
@@ -65,22 +84,22 @@ public actor ConnectionManager {
         appendLog(source: .system, level: "INFO", message: "Wi-Fi/WebDAV/WebSocket auth config updated")
     }
 
+    public func updateVehicleVIN(_ vin: String) {
+        settings.vehicleVIN = vin
+        appendLog(source: .system, level: "INFO", message: "VIN auth config updated")
+    }
+
     public func updateVideoRoot(path: String) {
         settings.videoRootPath = path
         appendLog(source: .system, level: "INFO", message: "Video root updated: \(path)")
     }
 
-    public func sendTransferRequestByPush(files: [String]) {
-        var message = CDCMessage(cmd: CDCCommand.transferRequestByPush)
-        message.list = files
-
-        guard let payload = try? message.encoded() else { return }
+    public func sendTransferRequestByPush(files: [String]?) {
+        guard let payload = try? CDCMessage.transferRequestByPush(files: files) else { return }
         appendLog(
             source: .webSocket,
             level: "INFO",
-            message: files.isEmpty
-                ? "Send transfer request by push: <empty list>"
-                : "Send transfer request by push: \(files.joined(separator: ", "))"
+            message: transferPushLog(files: files)
         )
         broadcast(text: payload)
     }
@@ -95,7 +114,7 @@ public actor ConnectionManager {
         return written
     }
 
-    public func applyScenario(_ scenario: TestScenario) throws -> [String] {
+    public func applyScenario(_ scenario: TestScenario) throws -> [String]? {
         activeScenario = scenario
         rejectNextTransfer = scenario == .cdcCancel
         pendingMoviePath = nil
@@ -105,7 +124,7 @@ public actor ConnectionManager {
         }
 
         appendLog(source: .system, level: "INFO", message: "Scenario armed: \(scenario.title)")
-        return scenario.pushFiles
+        return scenario.transferPushFiles
     }
 
     public func clearScenario() {
@@ -127,5 +146,14 @@ public actor ConnectionManager {
     func consumePendingMoviePath() -> String? {
         defer { pendingMoviePath = nil }
         return pendingMoviePath
+    }
+
+    private func transferPushLog(files: [String]?) -> String {
+        guard let files else {
+            return "Send transfer request by push: <null list / VIN digest mismatch>"
+        }
+        return files.isEmpty
+            ? "Send transfer request by push: <empty list>"
+            : "Send transfer request by push: \(files.joined(separator: ", "))"
     }
 }

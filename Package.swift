@@ -7,6 +7,7 @@ let package = Package(
     products: [
         .executable(name: "CDCSimulator", targets: ["CDCSimulator"]),
         .executable(name: "cdc-server", targets: ["cdc-server"]),
+        .library(name: "CDCSimulatorCore", targets: ["CDCSimulatorCore"]),
     ],
     dependencies: [
         .package(url: "https://github.com/swhitty/FlyingFox.git", from: "0.26.0"),

@@ -16,23 +16,13 @@ func run() async throws {
     let url = URL(string: "http://127.0.0.1:49150/\(file)")!
     let authorization = "Basic \(authData)"
 
-    var headRequest = URLRequest(url: url)
-    headRequest.httpMethod = "HEAD"
-    headRequest.setValue(authorization, forHTTPHeaderField: "Authorization")
-    let (_, headResponse) = try await URLSession.shared.data(for: headRequest)
-    guard let headHTTP = headResponse as? HTTPURLResponse,
-          headHTTP.statusCode == 200,
-          headHTTP.expectedContentLength >= 0 else {
-        throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "WebDAV HEAD failed"])
-    }
-
     var getRequest = URLRequest(url: url)
     getRequest.httpMethod = "GET"
     getRequest.setValue(authorization, forHTTPHeaderField: "Authorization")
     let (data, getResponse) = try await URLSession.shared.data(for: getRequest)
     guard let getHTTP = getResponse as? HTTPURLResponse,
           getHTTP.statusCode == 200,
-          Int64(data.count) == headHTTP.expectedContentLength else {
+          Int64(data.count) == getHTTP.expectedContentLength else {
         throw NSError(domain: "test", code: 1, userInfo: [NSLocalizedDescriptionKey: "WebDAV GET failed"])
     }
     print("WEBDAV: \(file) \(data.count) bytes")

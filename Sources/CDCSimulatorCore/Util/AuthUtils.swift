@@ -14,6 +14,10 @@ public enum AuthUtils {
         md5Prefix8(ssid + password)
     }
 
+    public static func vinDigest(vin: String) -> String {
+        md5Prefix8(vin)
+    }
+
     private static func md5Prefix8(_ value: String) -> String {
         let digest = Insecure.MD5.hash(data: Data(value.utf8))
         return digest.map { String(format: "%02x", $0) }.joined().prefix(8).description

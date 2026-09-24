@@ -13,20 +13,23 @@ struct CDCWebSocketHandler: WSMessageHandler {
             }
 
             Task {
-                await manager.registerOutbound(id: clientID) { text in
+                await manager.registerOutbound(id: clientID, close: {
+                    continuation.finish()
+                }) { text in
                     continuation.yield(.text(text))
                 }
 
                 for await message in client {
                     switch message {
                     case .text(let text):
-                        if let response = await handleIncoming(text: text) {
+                        for response in await responses(for: text) {
                             continuation.yield(.text(response))
                         }
                     case .data(let data):
-                        if let text = String(data: data, encoding: .utf8),
-                           let response = await handleIncoming(text: text) {
-                            continuation.yield(.text(response))
+                        if let text = String(data: data, encoding: .utf8) {
+                            for response in await responses(for: text) {
+                                continuation.yield(.text(response))
+                            }
                         }
                     case .close:
                         continuation.finish()
@@ -38,30 +41,36 @@ struct CDCWebSocketHandler: WSMessageHandler {
         }
     }
 
-    private func handleIncoming(text: String) async -> String? {
+    func responses(for text: String) async -> [String] {
         await manager.appendLog(source: .webSocket, level: "DEBUG", message: sanitizedInboundLog(text))
 
         guard let message = try? CDCMessage.decode(from: text) else {
             await manager.appendLog(source: .webSocket, level: "ERROR", message: "Invalid JSON payload")
-            return nil
+            return []
         }
 
         switch message.cmd {
         case CDCCommand.basicAuthRequest:
             return await handleBasicAuth(message)
+        case CDCCommand.vinAuthResponse:
+            return await handleVINAuthResponse(message)
         case CDCCommand.statusNotify:
-            return await handleStatusNotify(message)
+            await handleStatusNotify(message)
+            return []
         case CDCCommand.transferRequest:
-            return await handleTransferRequest(message)
+            guard let response = await handleTransferRequest(message) else {
+                return []
+            }
+            return [response]
         case CDCCommand.moviePathRequest:
-            return await handleMoviePathRequest(message)
+            return [await handleMoviePathRequest(message)]
         default:
             await manager.appendLog(source: .webSocket, level: "WARN", message: "Unhandled cmd: \(message.cmd)")
-            return nil
+            return []
         }
     }
 
-    private func handleBasicAuth(_ message: CDCMessage) async -> String {
+    private func handleBasicAuth(_ message: CDCMessage) async -> [String] {
         let expectedID = await manager.authID
         let expectedPass = await manager.authPass
         let ok = CDCAuthValidator.validate(
@@ -72,16 +81,54 @@ struct CDCWebSocketHandler: WSMessageHandler {
         )
 
         var response = CDCMessage(cmd: CDCCommand.basicAuthResponse)
-        response.status = ok ? "ok" : "error"
+        response.status = ok ? "success" : "error"
+        response.detail = ""
 
         let level = ok ? "INFO" : "ERROR"
         let suffix = ok ? "OK" : "FAILED"
         await manager.appendLog(source: .webSocket, level: level, message: "Basic Auth \(suffix) (id=\(message.id ?? ""))")
 
-        return (try? response.encoded()) ?? "{\"cmd\":\"basic auth response\",\"status\":\"error\"}"
+        guard ok else {
+            return [(try? response.encoded()) ?? "{\"cmd\":\"basic auth response\",\"status\":\"error\",\"detail\":\"\"}"]
+        }
+
+        let settings = await manager.settings
+        var vinRequest = CDCMessage(cmd: CDCCommand.vinAuthRequest)
+        vinRequest.vin = settings.vehicleVIN
+        await manager.appendLog(source: .webSocket, level: "INFO", message: "VIN Auth Request sent")
+
+        guard let authPayload = try? response.encoded(),
+              let vinPayload = try? vinRequest.encoded() else {
+            return []
+        }
+        return [authPayload, vinPayload]
     }
 
-    private func handleStatusNotify(_ message: CDCMessage) async -> String? {
+    private func handleVINAuthResponse(_ message: CDCMessage) async -> [String] {
+        let status = message.status ?? ""
+        let detail = message.detail ?? ""
+        let expectedVIN = await manager.settings.vehicleVIN
+
+        switch status {
+        case "success" where detail == AuthUtils.vinDigest(vin: expectedVIN):
+            await manager.appendLog(source: .webSocket, level: "INFO", message: "VIN Auth digest verified")
+            return []
+        case "success":
+            await manager.appendLog(source: .webSocket, level: "ERROR", message: "VIN Auth digest mismatch")
+            guard let payload = try? CDCMessage.transferRequestByPush(files: nil) else {
+                return []
+            }
+            return [payload]
+        case "error":
+            await manager.appendLog(source: .webSocket, level: "WARN", message: "VIN Auth rejected by App")
+            return []
+        default:
+            await manager.appendLog(source: .webSocket, level: "ERROR", message: "Invalid VIN Auth response status")
+            return []
+        }
+    }
+
+    private func handleStatusNotify(_ message: CDCMessage) async {
         let status = message.status ?? ""
         let detail = message.detail ?? ""
         await manager.appendLog(
@@ -89,13 +136,17 @@ struct CDCWebSocketHandler: WSMessageHandler {
             level: "INFO",
             message: "Status notify: status=\(status) detail=\(detail.isEmpty ? "(empty)" : detail)"
         )
-        return nil
     }
 
-    private func handleTransferRequest(_ message: CDCMessage) async -> String {
+    private func handleTransferRequest(_ message: CDCMessage) async -> String? {
         let files = message.list ?? []
         let detail = message.detail ?? ""
         let filename = files.first ?? ""
+
+        if await manager.activeScenario == .webSocketDisconnect {
+            await manager.disconnectAllClients(reason: "WebSocket disconnect scenario during transfer request")
+            return nil
+        }
 
         if await manager.shouldRejectTransfer() {
             await manager.appendLog(
@@ -147,6 +198,9 @@ struct CDCWebSocketHandler: WSMessageHandler {
         case CDCCommand.basicAuthRequest:
             let id = message.id ?? ""
             return "RX: cmd=\(CDCCommand.basicAuthRequest) id=\(id) pass=<masked>"
+        case CDCCommand.vinAuthResponse:
+            let status = message.status ?? ""
+            return "RX: cmd=\(CDCCommand.vinAuthResponse) status=\(status) detail=<masked>"
         case CDCCommand.statusNotify:
             let status = message.status ?? ""
             let detail = message.detail ?? ""

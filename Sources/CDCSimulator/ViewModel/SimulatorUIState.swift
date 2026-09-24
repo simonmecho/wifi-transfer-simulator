@@ -48,6 +48,7 @@ final class SimulatorUIState: ObservableObject {
     @Published var wifiSSID = "ChinaNet-SXGE-5G"
     @Published var wifiPassword = "Sm_20090524"
     @Published var securityType = "WPA2"
+    @Published var vehicleVIN = "TESTVIN0000000001"
     @Published var videoRootPath = SimulatorSettings.defaultVideoRoot()
 
     @Published var pushFilesText = "sample_front.mp4"
@@ -111,6 +112,7 @@ final class SimulatorUIState: ObservableObject {
         wifiSSID = settings.wifiSSID
         wifiPassword = settings.wifiPassword
         securityType = settings.securityType
+        vehicleVIN = settings.vehicleVIN
         videoRootPath = settings.videoRootPath
         await refresh()
     }
@@ -178,6 +180,14 @@ final class SimulatorUIState: ObservableObject {
                 password: wifiPassword,
                 securityType: securityType
             )
+            await refresh()
+        }
+    }
+
+    func applyVehicleVIN() {
+        guard let controller else { return }
+        Task {
+            await controller.manager.updateVehicleVIN(vehicleVIN)
             await refresh()
         }
     }
